@@ -27,6 +27,12 @@ jobs:
   ubuntu:
     # Im Container, nicht auf dem Runner: geprueft werden soll die Ubuntu-
     # Version aus versions.env, nicht die, die GitHub gerade anbietet.
+    #
+    # Dieser Lauf ist ausserdem die einzige Stelle, an der der amd64-Pfad
+    # wirklich geprueft wird. Auf einem Apple-Silicon-Geraet laeuft ein
+    # amd64-Container emuliert, und GNU tar scheitert dort beim Entpacken mit
+    # "Cannot open: Function not implemented" — ein Fehler der Emulation, nicht
+    # des Scripts. Die Runner sind echte amd64-Maschinen, hier faellt das weg.
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04

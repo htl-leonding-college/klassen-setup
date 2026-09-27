@@ -12,9 +12,9 @@
 #   ./setup-tools.sh --check    nur zeigen, was fehlt
 #
 # Ein fehlgeschlagener Schritt beendet den Lauf nicht. Er wird gemerkt, die
-# uebrigen Schritte laufen weiter, und am Ende steht, was offen blieb. Der
-# Rueckgabewert ist dann ungleich 0 — sonst waere "ist durchgelaufen" keine
-# Aussage.
+# uebrigen Schritte laufen weiter, und am Ende steht unter "Bilanz", was offen
+# blieb. Der Rueckgabewert ist dann ungleich 0 — sonst waere "ist
+# durchgelaufen" keine Aussage.
 #
 # Persoenliche Angaben (Name, E-Mail, SSH-Schluessel, Anmeldungen) richtet
 # setup-identity.sh ein — einmalig und interaktiv. Dieses Script fasst sie nie
@@ -30,14 +30,12 @@ CHECK_ONLY=0
 
 # --- Ausgabe ---------------------------------------------------------------
 MISSING=()
-MANUAL=()
 FAILED=()
 
 step()    { printf '\n== %s\n' "$*"; }
 ok()      { printf '   [ok]      %s\n' "$*"; }
 doing()   { printf '   [install] %s\n' "$*"; }
 skipped() { printf '   [fehlt]   %s\n' "$*";   MISSING+=("$*"); }
-manual()  { printf '   [manuell] %s\n' "$*";   MANUAL+=("$*"); }
 broke()   { printf '   [FEHLER]  %s\n' "$*";   FAILED+=("$*"); }
 
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -238,14 +236,55 @@ if [[ "$PKG" == "brew" ]]; then
     brew install --cask jetbrains-toolbox || broke "JetBrains Toolbox"
   fi
 else
-  # Auf Linux gibt es keinen Paketweg. Das ist ein Handgriff und wird als
-  # solcher gemeldet — nicht als [install]: sonst behauptet jeder weitere Lauf
-  # eine Installation, die nie stattfindet, und "beim zweiten Lauf steht
-  # ueberall [ok]" waere falsch.
-  if [[ -x "$HOME/.local/share/JetBrains/Toolbox/bin/jetbrains-toolbox" ]]; then
+  # Auf Linux gibt es keinen Paketweg — also Tarball, wie bei kubectl und
+  # minikube. Zwei Unterschiede zu allem anderen hier, beide gewollt:
+  #
+  #   * keine gepinnte Version. JetBrains veroeffentlicht unter TBA immer nur
+  #     den aktuellen Build und raeumt alte weg; ein Pin in versions.env waere
+  #     eine Zusage, die JetBrains nicht einhaelt. Die Toolbox ist ohnehin nur
+  #     der Installer der IDEs und aktualisiert sich nach dem ersten Start
+  #     selbst — die Version altert also nur bis dahin.
+  #   * dafuer wird die Pruefsumme geprueft. Ohne Pin ist sie das einzige, was
+  #     zwischen "geladen" und "das Richtige geladen" unterscheidet.
+  TOOLBOX_DIR="$HOME/.local/share/JetBrains/Toolbox"
+  if [[ -x "$TOOLBOX_DIR/bin/jetbrains-toolbox" ]]; then
     ok "JetBrains Toolbox"
+  elif [[ "$CHECK_ONLY" -eq 1 ]]; then
+    skipped "JetBrains Toolbox"
   else
-    manual "JetBrains Toolbox — von https://www.jetbrains.com/toolbox-app/ laden, nach ~/.local/share/JetBrains/Toolbox entpacken"
+    doing "JetBrains Toolbox"
+    case "$GOARCH" in
+      arm64) toolbox_platform=linuxARM64 ;;
+      *)     toolbox_platform=linux      ;;
+    esac
+    toolbox_url="$(curl -sIL -o /dev/null -w '%{url_effective}' \
+      "https://data.services.jetbrains.com/products/download?code=TBA&platform=${toolbox_platform}")"
+
+    if [[ "$toolbox_url" != *.tar.gz ]]; then
+      broke "JetBrains Toolbox — unerwartete Adresse: ${toolbox_url:-leer}"
+    else
+      toolbox_archive="/tmp/${toolbox_url##*/}"
+      if ! curl -fsSL "$toolbox_url" -o "$toolbox_archive"; then
+        broke "JetBrains Toolbox herunterladen ($toolbox_url)"
+      elif ! curl -fsSL "$toolbox_url.sha256" -o "$toolbox_archive.sha256"; then
+        broke "JetBrains Toolbox — Pruefsumme nicht erreichbar"
+        rm -f "$toolbox_archive"
+      elif ! (cd /tmp && sha256sum -c "$toolbox_archive.sha256" >/dev/null 2>&1); then
+        broke "JetBrains Toolbox — Pruefsumme stimmt nicht, Datei verworfen"
+        rm -f "$toolbox_archive" "$toolbox_archive.sha256"
+      else
+        printf '   Pruefsumme stimmt (%s)\n' "${toolbox_url##*/}"
+        mkdir -p "$TOOLBOX_DIR"
+        # --strip-components=1: das Archiv traegt die Version als oberstes
+        # Verzeichnis, und die soll nicht im Zielpfad landen.
+        if tar -xzf "$toolbox_archive" -C "$TOOLBOX_DIR" --strip-components=1; then
+          printf '   Hinweis: einmal %s/bin/jetbrains-toolbox starten.\n' "$TOOLBOX_DIR"
+        else
+          broke "JetBrains Toolbox entpacken"
+        fi
+        rm -f "$toolbox_archive" "$toolbox_archive.sha256"
+      fi
+    fi
   fi
 fi
 
@@ -271,12 +310,6 @@ ok "laeuft containerisiert (siehe curriculum-syp3/local-convert.sh) — Docker g
 
 # --- Bilanz ----------------------------------------------------------------
 step "Bilanz"
-
-if [[ ${#MANUAL[@]} -gt 0 ]]; then
-  for entry in "${MANUAL[@]}"; do
-    printf 'Handgriff offen: %s\n' "$entry"
-  done
-fi
 
 if [[ "$CHECK_ONLY" -eq 1 ]]; then
   if [[ ${#MISSING[@]} -eq 0 ]]; then

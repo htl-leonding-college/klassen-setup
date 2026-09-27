@@ -95,7 +95,9 @@ Danach einmalig:
 |Release-Binary passend zu System und Architektur
 
 |JetBrains Toolbox
-|`brew --cask` bzw. Download von Hand
+|`brew --cask` bzw. Tarball von JetBrains, SHA-256 geprueft. Als einziges
+ Werkzeug nicht gepinnt — JetBrains haelt unter ihrem Produktcode nur den
+ aktuellen Build vor
 
 |powerlevel10k
 |`git clone`
@@ -118,8 +120,7 @@ ausgefuehrt.
 Ein einzelner Fehlschlag beendet den Lauf *nicht*. Er wird gemerkt, die
 uebrigen Schritte laufen weiter, und am Ende steht unter `== Bilanz`, was offen
 blieb. Der Rueckgabewert ist dann ungleich 0 — andernfalls waere „ist
-durchgelaufen" keine Aussage. Schritte, fuer die es keinen Paketweg gibt,
-erscheinen als `[manuell]` und nicht als `[install]`.
+durchgelaufen" keine Aussage.
 
 `--check` endet mit 0, wenn nichts fehlt, sonst mit 1. Damit laesst sich der
 Zustand eines Geraets auch maschinell pruefen.
