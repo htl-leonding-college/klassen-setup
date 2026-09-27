@@ -46,6 +46,7 @@ if [[ -z "$current_name" || -z "$current_mail" ]]; then
 fi
 
 printf '\n== SSH-Schluessel\n'
+mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
 key="$HOME/.ssh/id_ed25519"
 if [[ -f "$key" ]]; then
   printf '   vorhanden: %s (bleibt unangetastet)\n' "$key"

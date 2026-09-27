@@ -37,6 +37,12 @@ Bewusst *kein* `curl … | bash`. Ein fremdes Script ungelesen mit erhoehten
 Rechten auszufuehren ist genau die Gewohnheit, die ihr euch nicht antrainieren
 sollt. Der Umweg ist der Lehrinhalt.
 
+NOTE: Eine Ausnahme gibt es, und sie wird benannt statt versteckt: SDKMAN
+bietet keinen Paketweg an. `setup-tools.sh` laedt dessen Installer deshalb
+herunter, legt ihn als `.cache/sdkman-install.sh` ab, nennt Pfad und Groesse
+und fuehrt ihn erst dann aus. Die Datei bleibt liegen und ist nachlesbar — das
+ist der Unterschied zu einer Pipe.
+
 [source,bash]
 ----
 # 1. Herunterladen
@@ -109,6 +115,15 @@ Derselbe Begriff begegnet euch bei Docker und Kubernetes wieder — dort heisst
 das gewuenschte Ergebnis ebenfalls: derselbe Endzustand, egal wie oft
 ausgefuehrt.
 
+Ein einzelner Fehlschlag beendet den Lauf *nicht*. Er wird gemerkt, die
+uebrigen Schritte laufen weiter, und am Ende steht unter `== Bilanz`, was offen
+blieb. Der Rueckgabewert ist dann ungleich 0 — andernfalls waere „ist
+durchgelaufen" keine Aussage. Schritte, fuer die es keinen Paketweg gibt,
+erscheinen als `[manuell]` und nicht als `[install]`.
+
+`--check` endet mit 0, wenn nichts fehlt, sonst mit 1. Damit laesst sich der
+Zustand eines Geraets auch maschinell pruefen.
+
 == Voraussetzungen am Geraet
 
 * RAM >= 8 GB (16 GB empfohlen)
@@ -117,10 +132,9 @@ ausgefuehrt.
 * BitLocker-Recovery-Key *vorher* gesichert
 * Windows-Schnellstart deaktiviert, SATA-Modus auf AHCI
 
-WARNING: Vor dem Partitionieren mit einem Ubuntu-Live-USB mit Persistenz
-testen, ob das Geraet Linux ueberhaupt bootet. Der Test kostet eine
-Viertelstunde, die Reparatur einer verunglueckten Installation einen
-Nachmittag.
+WARNING: Diese Liste vollstaendig abarbeiten, *bevor* die Partitionstabelle
+angefasst wird. Jeder Punkt kostet jetzt Minuten und nachher einen Nachmittag;
+der Recovery-Key laesst sich hinterher gar nicht mehr beschaffen.
 
 == Versionen und Schuljahre
 

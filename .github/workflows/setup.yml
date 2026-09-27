@@ -1,0 +1,71 @@
+# Haelt die Behauptung "das Script laeuft" pruefbar.
+#
+# Ohne diesen Lauf ist sie eine Vermutung: die Schuelergeraete stehen fuer
+# einen Test nicht zur Verfuegung, und ein einmal von Hand geprueftes Script
+# ist beim naechsten Ubuntu-Punktrelease wieder ungeprueft.
+name: setup
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Einmal woechentlich, damit Paketnamen und Download-Adressen nicht still
+    # veralten - genau die Fehlerklasse, die sonst erst im Unterricht auffaellt.
+    - cron: "0 4 * * 1"
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck -S warning setup-tools.sh setup-identity.sh
+
+  ubuntu:
+    # Im Container, nicht auf dem Runner: geprueft werden soll die Ubuntu-
+    # Version aus versions.env, nicht die, die GitHub gerade anbietet.
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:26.04
+    steps:
+      - name: Werkzeuge fuer den Lauf selbst
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq sudo ca-certificates git
+
+      - uses: actions/checkout@v5
+
+      - name: Unprivilegierter Benutzer mit sudo
+        run: |
+          useradd -m -s /bin/bash student
+          echo "student ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/student
+          cp -r "$GITHUB_WORKSPACE" /home/student/klassen-setup
+          chown -R student:student /home/student/klassen-setup
+
+      - name: Lauf 1 - --check auf blankem System meldet, was fehlt
+        run: |
+          # Erwartet wird Rueckgabewert 1: auf einem blanken System fehlt alles.
+          # Das if schuetzt den Schritt vor "set -e" des Runners.
+          if su student -c 'cd ~/klassen-setup && ./setup-tools.sh --check'; then
+            echo "Unerwartet: --check meldet auf blankem System, dass nichts fehlt." >&2
+            exit 1
+          fi
+
+      - name: Lauf 2 - vollstaendige Installation
+        run: su student -c 'cd ~/klassen-setup && ./setup-tools.sh'
+
+      - name: Lauf 3 - erneut, nichts wird installiert
+        run: |
+          set -o pipefail   # sonst verdeckt tee einen Fehlschlag des Laufs
+          su student -c 'cd ~/klassen-setup && ./setup-tools.sh' | tee /tmp/zweiter-lauf.log
+          if grep -q '\[install\]' /tmp/zweiter-lauf.log; then
+            echo "Nicht idempotent: der zweite Lauf installiert noch etwas." >&2
+            grep '\[install\]' /tmp/zweiter-lauf.log >&2
+            exit 1
+          fi
+
+      - name: Lauf 4 - --check meldet jetzt, dass nichts fehlt
+        run: su student -c 'cd ~/klassen-setup && ./setup-tools.sh --check'
