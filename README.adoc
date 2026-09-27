@@ -14,7 +14,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-Einheitliche Arbeitsumgebung fuer den Unterricht — Ubuntu 26.04 LTS oder macOS.
+Einheitliche Arbeitsumgebung für den Unterricht — Ubuntu 26.04 LTS oder macOS.
 Zwei Scripts mit verschiedenen Aufgaben:
 
 [cols="1,3",options="header"]
@@ -25,7 +25,7 @@ Zwei Scripts mit verschiedenen Aufgaben:
 |Werkzeuge installieren. Idempotent, unbeaufsichtigt, beliebig oft wiederholbar.
 
 |`setup-identity.sh`
-|Name, E-Mail, SSH-Schluessel, GitHub-Anmeldung. Einmalig und interaktiv.
+|Name, E-Mail, SSH-Schlüssel, GitHub-Anmeldung. Einmalig und interaktiv.
 
 |`versions.env`
 |Die verwendeten Versionen — die eine Stelle, an der sie stehen.
@@ -33,14 +33,14 @@ Zwei Scripts mit verschiedenen Aufgaben:
 
 == Einstieg
 
-Bewusst *kein* `curl … | bash`. Ein fremdes Script ungelesen mit erhoehten
-Rechten auszufuehren ist genau die Gewohnheit, die ihr euch nicht antrainieren
+Bewusst *kein* `curl … | bash`. Ein fremdes Script ungelesen mit erhöhten
+Rechten auszuführen ist genau die Gewohnheit, die ihr euch nicht antrainieren
 sollt. Der Umweg ist der Lehrinhalt.
 
 NOTE: Eine Ausnahme gibt es, und sie wird benannt statt versteckt: SDKMAN
-bietet keinen Paketweg an. `setup-tools.sh` laedt dessen Installer deshalb
-herunter, legt ihn als `.cache/sdkman-install.sh` ab, nennt Pfad und Groesse
-und fuehrt ihn erst dann aus. Die Datei bleibt liegen und ist nachlesbar — das
+bietet keinen Paketweg an. `setup-tools.sh` lädt dessen Installer deshalb
+herunter, legt ihn als `.cache/sdkman-install.sh` ab, nennt Pfad und Größe
+und führt ihn erst dann aus. Die Datei bleibt liegen und ist nachlesbar — das
 ist der Unterschied zu einer Pipe.
 
 [source,bash]
@@ -53,7 +53,7 @@ cd klassen-setup
 less setup-tools.sh
 less versions.env
 
-# 3. Ausfuehren
+# 3. Ausführen
 ./setup-tools.sh
 ----
 
@@ -95,56 +95,56 @@ Danach einmalig:
 |Release-Binary passend zu System und Architektur
 
 |JetBrains Toolbox
-|`brew --cask` bzw. Tarball von JetBrains, SHA-256 geprueft. Als einziges
- Werkzeug nicht gepinnt — JetBrains haelt unter ihrem Produktcode nur den
+|`brew --cask` bzw. Tarball von JetBrains, SHA-256 geprüft. Als einziges
+ Werkzeug nicht gepinnt — JetBrains hält unter ihrem Produktcode nur den
  aktuellen Build vor
 
 |powerlevel10k
 |`git clone`
 
 |asciidoctor
-|gar nicht — laeuft containerisiert, Docker genuegt
+|gar nicht — läuft containerisiert, Docker genügt
 |===
 
 == Idempotenz
 
-Der erste Lauf dauert ueber eine Viertelstunde und fuehrt durch ein Dutzend
+Der erste Lauf dauert über eine Viertelstunde und führt durch ein Dutzend
 Fehlerquellen: Netzausfall, `apt`-Lock, abgebrochener Download. Er *wird*
-irgendwann abbrechen. Jeder Schritt prueft deshalb zuerst, ob das Werkzeug
+irgendwann abbrechen. Jeder Schritt prüft deshalb zuerst, ob das Werkzeug
 schon da ist; ein erneuter Lauf setzt fort, statt Schaden anzurichten.
 
-Derselbe Begriff begegnet euch bei Docker und Kubernetes wieder — dort heisst
-das gewuenschte Ergebnis ebenfalls: derselbe Endzustand, egal wie oft
-ausgefuehrt.
+Derselbe Begriff begegnet euch bei Docker und Kubernetes wieder — dort heißt
+das gewünschte Ergebnis ebenfalls: derselbe Endzustand, egal wie oft
+ausgeführt.
 
 Ein einzelner Fehlschlag beendet den Lauf *nicht*. Er wird gemerkt, die
-uebrigen Schritte laufen weiter, und am Ende steht unter `== Bilanz`, was offen
-blieb. Der Rueckgabewert ist dann ungleich 0 — andernfalls waere „ist
+übrigen Schritte laufen weiter, und am Ende steht unter `== Bilanz`, was offen
+blieb. Der Rückgabewert ist dann ungleich 0 — andernfalls wäre „ist
 durchgelaufen" keine Aussage.
 
-`--check` endet mit 0, wenn nichts fehlt, sonst mit 1. Damit laesst sich der
-Zustand eines Geraets auch maschinell pruefen.
+`--check` endet mit 0, wenn nichts fehlt, sonst mit 1. Damit lässt sich der
+Zustand eines Geräts auch maschinell prüfen.
 
-== Voraussetzungen am Geraet
+== Voraussetzungen am Gerät
 
 * RAM >= 8 GB (16 GB empfohlen)
-* Freie Partition >= 100 GB fuer Ubuntu
+* Freie Partition >= 100 GB für Ubuntu
 * Virtualisierung im BIOS aktiviert
 * BitLocker-Recovery-Key *vorher* gesichert
 * Windows-Schnellstart deaktiviert, SATA-Modus auf AHCI
 
-WARNING: Diese Liste vollstaendig abarbeiten, *bevor* die Partitionstabelle
+WARNING: Diese Liste vollständig abarbeiten, *bevor* die Partitionstabelle
 angefasst wird. Jeder Punkt kostet jetzt Minuten und nachher einen Nachmittag;
-der Recovery-Key laesst sich hinterher gar nicht mehr beschaffen.
+der Recovery-Key lässt sich hinterher gar nicht mehr beschaffen.
 
 == Versionen und Schuljahre
 
-`versions.env` haelt die verbindlichen Versionen. Je Schuljahr wird ein
-git-Tag gesetzt, damit ein Stand nachtraeglich rekonstruierbar bleibt: Faellt
-ein Fehler nur bei einzelnen Schuelern auf, ist die verbindliche Version an
+`versions.env` hält die verbindlichen Versionen. Je Schuljahr wird ein
+git-Tag gesetzt, damit ein Stand nachträglich rekonstruierbar bleibt: Fällt
+ein Fehler nur bei einzelnen Schülern auf, ist die verbindliche Version an
 *einer* Stelle nachlesbar.
 
 == Zugangsdaten
 
-Keine im Repository. `setup-identity.sh` erzeugt den SSH-Schluessel lokal; der
-private Teil verlaesst das Geraet nicht, weitergegeben wird nur `*.pub`.
+Keine im Repository. `setup-identity.sh` erzeugt den SSH-Schlüssel lokal; der
+private Teil verlässt das Gerät nicht, weitergegeben wird nur `*.pub`.

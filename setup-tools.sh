@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 #
-# Werkzeuginstallation fuer den Unterricht — wiederholbar, unbeaufsichtigt.
+# Werkzeuginstallation für den Unterricht — wiederholbar, unbeaufsichtigt.
 #
-# Jeder Schritt prueft zuerst, ob das Werkzeug schon da ist. Der Lauf dauert
-# beim ersten Mal ueber eine Viertelstunde und kann abbrechen (Netz, apt-Lock,
-# abgebrochener Download). Ein zweiter Lauf setzt fort und beschaedigt nichts.
-# Genau das heisst idempotent — derselbe Begriff begegnet euch bei Docker und
+# Jeder Schritt prüft zuerst, ob das Werkzeug schon da ist. Der Lauf dauert
+# beim ersten Mal über eine Viertelstunde und kann abbrechen (Netz, apt-Lock,
+# abgebrochener Download). Ein zweiter Lauf setzt fort und beschädigt nichts.
+# Genau das heißt idempotent — derselbe Begriff begegnet euch bei Docker und
 # Kubernetes wieder.
 #
 #   ./setup-tools.sh            alles installieren
 #   ./setup-tools.sh --check    nur zeigen, was fehlt
 #
 # Ein fehlgeschlagener Schritt beendet den Lauf nicht. Er wird gemerkt, die
-# uebrigen Schritte laufen weiter, und am Ende steht unter "Bilanz", was offen
-# blieb. Der Rueckgabewert ist dann ungleich 0 — sonst waere "ist
+# übrigen Schritte laufen weiter, und am Ende steht unter "Bilanz", was offen
+# blieb. Der Rückgabewert ist dann ungleich 0 — sonst wäre "ist
 # durchgelaufen" keine Aussage.
 #
-# Persoenliche Angaben (Name, E-Mail, SSH-Schluessel, Anmeldungen) richtet
+# Persönliche Angaben (Name, E-Mail, SSH-Schlüssel, Anmeldungen) richtet
 # setup-identity.sh ein — einmalig und interaktiv. Dieses Script fasst sie nie
 # an, deshalb darf es beliebig oft laufen.
 
@@ -44,16 +44,16 @@ have() { command -v "$1" >/dev/null 2>&1; }
 case "$(uname -s)" in
   Linux)  PKG=apt  ;;
   Darwin) PKG=brew ;;
-  *) echo "Nicht unterstuetztes System: $(uname -s)" >&2; exit 1 ;;
+  *) echo "Nicht unterstütztes System: $(uname -s)" >&2; exit 1 ;;
 esac
 printf 'System: %s (%s), Schuljahr %s\n' "$(uname -s)" "$PKG" "$SCHULJAHR"
 
-# UBUNTU_RELEASE ist die Version, gegen die geprueft wurde. Eine andere ist
-# kein Fehler — aber wenn spaeter ein Paketname nicht passt, steht hier warum.
+# UBUNTU_RELEASE ist die Version, gegen die geprüft wurde. Eine andere ist
+# kein Fehler — aber wenn später ein Paketname nicht passt, steht hier warum.
 if [[ "$PKG" == "apt" && -r /etc/os-release ]]; then
   running_release="$(. /etc/os-release && printf '%s' "${VERSION_ID:-unbekannt}")"
   if [[ "$running_release" != "$UBUNTU_RELEASE" ]]; then
-    printf 'Hinweis: geprueft gegen Ubuntu %s, hier laeuft %s.\n' \
+    printf 'Hinweis: geprüft gegen Ubuntu %s, hier läuft %s.\n' \
       "$UBUNTU_RELEASE" "$running_release"
   fi
 fi
@@ -97,7 +97,7 @@ fi
 
 # --- Grundwerkzeuge --------------------------------------------------------
 # zip steht hier, weil der SDKMAN-Installer es verlangt und ohne es abbricht.
-# unzip allein genuegt ihm nicht — das kostet sonst den ganzen Lauf.
+# unzip allein genügt ihm nicht — das kostet sonst den ganzen Lauf.
 step "Grundwerkzeuge"
 ensure_command git      git         git
 ensure_command curl     curl        curl
@@ -106,10 +106,10 @@ ensure_command zip      zip         zip
 ensure_command zsh      zsh         zsh
 ensure_command gh       gh          gh
 
-# --- Java-Stack ueber SDKMAN ----------------------------------------------
-# Ein Mechanismus fuer JDK, Maven und Gradle, identisch auf beiden Systemen,
+# --- Java-Stack über SDKMAN ----------------------------------------------
+# Ein Mechanismus für JDK, Maven und Gradle, identisch auf beiden Systemen,
 # Versionen pinbar, mehrere JDKs parallel. Das von Hand gesetzte JAVA_HOME —
-# die haeufigste Fehlerquelle der bisherigen Anleitung — entfaellt.
+# die häufigste Fehlerquelle der bisherigen Anleitung — entfällt.
 step "Java-Stack (SDKMAN)"
 SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
 if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
@@ -118,7 +118,7 @@ elif [[ "$CHECK_ONLY" -eq 1 ]]; then
   skipped "SDKMAN"
 else
   doing "SDKMAN"
-  # Die eine Ausnahme von "kein fremdes Script ungelesen ausfuehren": SDKMAN
+  # Die eine Ausnahme von "kein fremdes Script ungelesen ausführen": SDKMAN
   # bietet keinen Paketweg. Der Installer landet deshalb nicht in einer Pipe,
   # sondern als Datei, wird benannt und bleibt zum Nachlesen liegen.
   mkdir -p .cache
@@ -137,7 +137,7 @@ sdk_install() {
   #
   # SDKMAN ist nicht "set -u"-fest: seine eigenen Funktionen greifen auf nicht
   # gesetzte Positionsparameter zu und brechen dann mit "$3: unbound variable"
-  # ab. Deshalb laeuft der ganze Abschnitt hier ohne -u, nicht nur das source.
+  # ab. Deshalb läuft der ganze Abschnitt hier ohne -u, nicht nur das source.
   local candidate="$1" version="$2"
   if [[ ! -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then skipped "$candidate $version"; return; fi
 
@@ -181,14 +181,14 @@ else
   doing "docker"
   if [[ "$PKG" == "apt" ]]; then
     if sudo apt-get install -y docker.io docker-compose-v2; then
-      sudo usermod -aG docker "$USER" || broke "Benutzer zur Gruppe docker hinzufuegen"
+      sudo usermod -aG docker "$USER" || broke "Benutzer zur Gruppe docker hinzufügen"
       printf '   Hinweis: einmal ab- und wieder anmelden, damit die Gruppe greift.\n'
     else
       broke "docker (Pakete docker.io, docker-compose-v2)"
     fi
   else
     if brew install --cask docker; then
-      printf '   Hinweis: Docker Desktop einmal starten, damit der Dienst laeuft.\n'
+      printf '   Hinweis: Docker Desktop einmal starten, damit der Dienst läuft.\n'
     else
       broke "docker (brew --cask docker)"
     fi
@@ -239,12 +239,12 @@ else
   # Auf Linux gibt es keinen Paketweg — also Tarball, wie bei kubectl und
   # minikube. Zwei Unterschiede zu allem anderen hier, beide gewollt:
   #
-  #   * keine gepinnte Version. JetBrains veroeffentlicht unter TBA immer nur
-  #     den aktuellen Build und raeumt alte weg; ein Pin in versions.env waere
-  #     eine Zusage, die JetBrains nicht einhaelt. Die Toolbox ist ohnehin nur
+  #   * keine gepinnte Version. JetBrains veröffentlicht unter TBA immer nur
+  #     den aktuellen Build und räumt alte weg; ein Pin in versions.env wäre
+  #     eine Zusage, die JetBrains nicht einhält. Die Toolbox ist ohnehin nur
   #     der Installer der IDEs und aktualisiert sich nach dem ersten Start
   #     selbst — die Version altert also nur bis dahin.
-  #   * dafuer wird die Pruefsumme geprueft. Ohne Pin ist sie das einzige, was
+  #   * dafür wird die Prüfsumme geprüft. Ohne Pin ist sie das einzige, was
   #     zwischen "geladen" und "das Richtige geladen" unterscheidet.
   TOOLBOX_DIR="$HOME/.local/share/JetBrains/Toolbox"
   if [[ -x "$TOOLBOX_DIR/bin/jetbrains-toolbox" ]]; then
@@ -267,15 +267,15 @@ else
       if ! curl -fsSL "$toolbox_url" -o "$toolbox_archive"; then
         broke "JetBrains Toolbox herunterladen ($toolbox_url)"
       elif ! curl -fsSL "$toolbox_url.sha256" -o "$toolbox_archive.sha256"; then
-        broke "JetBrains Toolbox — Pruefsumme nicht erreichbar"
+        broke "JetBrains Toolbox — Prüfsumme nicht erreichbar"
         rm -f "$toolbox_archive"
       elif ! (cd /tmp && sha256sum -c "$toolbox_archive.sha256" >/dev/null 2>&1); then
-        broke "JetBrains Toolbox — Pruefsumme stimmt nicht, Datei verworfen"
+        broke "JetBrains Toolbox — Prüfsumme stimmt nicht, Datei verworfen"
         rm -f "$toolbox_archive" "$toolbox_archive.sha256"
       else
-        printf '   Pruefsumme stimmt (%s)\n' "${toolbox_url##*/}"
+        printf '   Prüfsumme stimmt (%s)\n' "${toolbox_url##*/}"
         mkdir -p "$TOOLBOX_DIR"
-        # --strip-components=1: das Archiv traegt die Version als oberstes
+        # --strip-components=1: das Archiv trägt die Version als oberstes
         # Verzeichnis, und die soll nicht im Zielpfad landen.
         if tar -xzf "$toolbox_archive" -C "$TOOLBOX_DIR" --strip-components=1; then
           printf '   Hinweis: einmal %s/bin/jetbrains-toolbox starten.\n' "$TOOLBOX_DIR"
@@ -298,15 +298,15 @@ elif [[ "$CHECK_ONLY" -eq 1 ]]; then
 else
   doing "powerlevel10k"
   if git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"; then
-    printf '   In ~/.zshrc ergaenzen: source %s/powerlevel10k.zsh-theme\n' "$P10K_DIR"
+    printf '   In ~/.zshrc ergänzen: source %s/powerlevel10k.zsh-theme\n' "$P10K_DIR"
   else
     broke "powerlevel10k klonen"
   fi
 fi
 
-# --- asciidoctor laeuft im Container, nicht lokal --------------------------
+# --- asciidoctor läuft im Container, nicht lokal --------------------------
 step "asciidoctor"
-ok "laeuft containerisiert (siehe curriculum-syp3/local-convert.sh) — Docker genuegt"
+ok "läuft containerisiert (siehe curriculum-syp3/local-convert.sh) — Docker genügt"
 
 # --- Bilanz ----------------------------------------------------------------
 step "Bilanz"
@@ -321,7 +321,7 @@ if [[ "$CHECK_ONLY" -eq 1 ]]; then
 fi
 
 if [[ ${#FAILED[@]} -eq 0 ]]; then
-  printf 'Zustand hergestellt. Persoenliche Einrichtung: ./setup-identity.sh\n'
+  printf 'Zustand hergestellt. Persönliche Einrichtung: ./setup-identity.sh\n'
   exit 0
 fi
 
@@ -329,5 +329,5 @@ printf '%d Schritte sind fehlgeschlagen:\n' "${#FAILED[@]}"
 for entry in "${FAILED[@]}"; do
   printf '  - %s\n' "$entry"
 done
-printf '\nDas Script nochmals starten — was schon steht, wird uebersprungen.\n'
+printf '\nDas Script nochmals starten — was schon steht, wird übersprungen.\n'
 exit 1

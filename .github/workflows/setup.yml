@@ -1,16 +1,16 @@
-# Haelt die Behauptung "das Script laeuft" pruefbar.
+# Hält die Behauptung "das Script läuft" prüfbar.
 #
-# Ohne diesen Lauf ist sie eine Vermutung: die Schuelergeraete stehen fuer
-# einen Test nicht zur Verfuegung, und ein einmal von Hand geprueftes Script
-# ist beim naechsten Ubuntu-Punktrelease wieder ungeprueft.
+# Ohne diesen Lauf ist sie eine Vermutung: die Schülergeräte stehen für
+# einen Test nicht zur Verfügung, und ein einmal von Hand geprüftes Script
+# ist beim nächsten Ubuntu-Punktrelease wieder ungeprüft.
 name: setup
 
 on:
   push:
   pull_request:
   schedule:
-    # Einmal woechentlich, damit Paketnamen und Download-Adressen nicht still
-    # veralten - genau die Fehlerklasse, die sonst erst im Unterricht auffaellt.
+    # Einmal wöchentlich, damit Paketnamen und Download-Adressen nicht still
+    # veralten - genau die Fehlerklasse, die sonst erst im Unterricht auffällt.
     - cron: "0 4 * * 1"
 
 jobs:
@@ -25,19 +25,19 @@ jobs:
           shellcheck -S warning setup-tools.sh setup-identity.sh
 
   ubuntu:
-    # Im Container, nicht auf dem Runner: geprueft werden soll die Ubuntu-
+    # Im Container, nicht auf dem Runner: geprüft werden soll die Ubuntu-
     # Version aus versions.env, nicht die, die GitHub gerade anbietet.
     #
-    # Dieser Lauf ist ausserdem die einzige Stelle, an der der amd64-Pfad
-    # wirklich geprueft wird. Auf einem Apple-Silicon-Geraet laeuft ein
+    # Dieser Lauf ist außerdem die einzige Stelle, an der der amd64-Pfad
+    # wirklich geprüft wird. Auf einem Apple-Silicon-Gerät läuft ein
     # amd64-Container emuliert, und GNU tar scheitert dort beim Entpacken mit
     # "Cannot open: Function not implemented" — ein Fehler der Emulation, nicht
-    # des Scripts. Die Runner sind echte amd64-Maschinen, hier faellt das weg.
+    # des Scripts. Die Runner sind echte amd64-Maschinen, hier fällt das weg.
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04
     steps:
-      - name: Werkzeuge fuer den Lauf selbst
+      - name: Werkzeuge für den Lauf selbst
         run: |
           apt-get update -qq
           apt-get install -y -qq sudo ca-certificates git
@@ -53,14 +53,14 @@ jobs:
 
       - name: Lauf 1 - --check auf blankem System meldet, was fehlt
         run: |
-          # Erwartet wird Rueckgabewert 1: auf einem blanken System fehlt alles.
-          # Das if schuetzt den Schritt vor "set -e" des Runners.
+          # Erwartet wird Rückgabewert 1: auf einem blanken System fehlt alles.
+          # Das if schützt den Schritt vor "set -e" des Runners.
           if su student -c 'cd ~/klassen-setup && ./setup-tools.sh --check'; then
             echo "Unerwartet: --check meldet auf blankem System, dass nichts fehlt." >&2
             exit 1
           fi
 
-      - name: Lauf 2 - vollstaendige Installation
+      - name: Lauf 2 - vollständige Installation
         run: su student -c 'cd ~/klassen-setup && ./setup-tools.sh'
 
       - name: Lauf 3 - erneut, nichts wird installiert
